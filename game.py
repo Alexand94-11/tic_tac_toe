@@ -4,9 +4,15 @@ from gameparts.exceptions import CellOccupiedError, FieldIndexError
 
 
 def save_result(result):
+    # Работа с файлами без контекстного менеджера:
+    '''
     file = open('results.txt', 'a', encoding='utf-8')
     file.write(result + '\n')
     file.close()
+    '''
+    # Работа с файлами с контекстным менеджером: 
+    with open('results.txt', 'a', encoding='utf-8') as file:
+        file.write(result + '\n')
 
 
 def main():
