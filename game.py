@@ -1,119 +1,79 @@
-# Использование импорта пакета
+# game.py
 from gameparts import Board
-from gameparts.exceptions import FieldIndexError
+from gameparts.exceptions import CellOccupiedError, FieldIndexError
 
 
-'''
-# Стандартная логика работы программы:
-# Создать игровое поле - объект класса Board.
-game = Board()
-# Отрисовать поле в терминале.
-game.display()
-# Разместить на поле символ по указанным координатам - сделать ход.
-game.make_move(1, 1, 'X')
-print('Ход сделан!')
-# Перерисовать поле с учётом сделанного хода.
-game.display()
-game.make_move(0, 0, 'O')
-print('Ход сделан!')
-game.display()
-game.make_move(0, 1, 'X')
-print('Ход сделан!')
-game.display()
-game.make_move(2, 1, 'O')
-print('Ход сделан!')
-game.display()
-'''
-'''
-# Использование конструкции if __name__ == '__main__'
-# Всё, что ниже этой инструкции, не будет импортироваться,
-# но будет выполняться при запуске файла game.py.
-if __name__ == '__main__':
-    game = Board()
-    game.display()
-    game.make_move(1, 1, 'X')
-    print('Ход сделан!')
-    game.display()
-'''
+def save_result(result):
+    file = open('results.txt', 'a', encoding='utf-8')
+    file.write(result + '\n')
+    file.close()
 
-# Тот же код с использованием функции main()
 
-'''
-# Отработка программы с исключениями
 def main():
     game = Board()
-    game.display()
-    # Пользователь вводит номер строки.
-    row = int(input('Введите номер строки: '))
-    # Если введённое значение меньше нуля или больше или равно
-    # field_size (это значение равно трём, оно хранится в модуле
-    # parts.py)...
-    if row < 0 or row >= game.field_size:
-        # ...выбросить исключение FieldIndexError.
-        raise FieldIndexError
-    column = int(input('Введите номер столбца: '))
-    # Аналогичная проверка по номеру столбца:
-    if column < 0 or column >= game.field_size:
-        raise FieldIndexError
-    # В метод make_move передаются те координаты, которые ввёл пользователь.
-    game.make_move(row, column, 'X')
-    print('Ход сделан!')
-    game.display()
-'''
-
-
-# Отработка программы с исключениями с учетом "укрощения"
-def main():
-    game = Board()
+    # Первыми ходят крестики.
+    current_player = 'X'
+    # Это флаговая переменная. По умолчанию игра запущена и продолжается.
+    running = True
     game.display()
 
-    # Запускается бесконечный цикл.
-    while True:
-        # В этом блоке содержатся операции, которые могут вызвать исключение.
-        try:
-            # Пользователь вводит значение номера строки.
-            row = int(input('Введите номер строки: '))
-            # Если введённое число меньше 0 или больше
-            # или равно game.field_size...
-            if row < 0 or row >= game.field_size:
-                # ...выбрасывается собственное исключение FieldIndexError.
-                raise FieldIndexError
-            column = int(input('Введите номер столбца: '))
-            # Если введённое число меньше 0 или больше
-            # или равно game.field_size...
-            if column < 0 or column >= game.field_size:
-                # ...выбрасывается собственное исключение FieldIndexError.
-                raise FieldIndexError
-        # Если возникает исключение FieldIndexError...
-        except FieldIndexError:
-            # ...выводятся сообщения...
-            print(
-                'Значение должно быть неотрицательным и меньше '
-                f'{game.field_size}.'
-            )
-            print('Пожалуйста, введите значения для строки и столбца заново.')
-            # ...и цикл начинает свою работу сначала,
-            # предоставляя пользователю ещё одну попытку ввести данные.
-            continue
-        # Если возникает исключение ValueError...
-        except ValueError:
-            print('Буквы вводить нельзя. Только числа.')
-            print('Пожалуйста, введите значения для строки и столбца заново.')
-            continue
-        except Exception as e:
-            print(f'Возникла ошибка: {e}')
-        # Если в блоке try исключения не возникло...
-        else:
-            # ...значит, введённые значения прошли все проверки
-            # и могут быть использованы в дальнейшем.
-            # Цикл прерывается.
-            break
+    # Тут запускается основной цикл игры.
+    while running:
 
-    game.make_move(row, column, 'X')
-    print('Ход сделан!')
-    game.display()
+        print(f'Ход делают {current_player}')
+
+        # Запускается бесконечный цикл.
+        while True:
+            try:
+                row = int(input('Введите номер строки: ')) - 1
+                if row < 0 or row >= game.field_size:
+                    raise FieldIndexError
+                column = int(input('Введите номер столбца: ')) - 1
+                if column < 0 or column >= game.field_size:
+                    raise FieldIndexError
+                # Проверка занятости ячейки
+                if game.board[row][column] != ' ':
+                    raise CellOccupiedError
+            except FieldIndexError:
+                print(
+                    'Значение должно быть положительным и не больше '
+                    f'{game.field_size}.'
+                )
+                print('Введите значения для строки и столбца заново.')
+                continue
+            except CellOccupiedError:
+                print('Ячейка занята')
+                print('Введите другие координаты.')
+            except ValueError:
+                print('Можно вводить только целые числа. '
+                      'Другие символы вводить нельзя.')
+                print('Введите значения для строки и столбца заново.')
+                continue
+            except Exception as e:
+                print(f'Возникла ошибка: {e}')
+            else:
+                break
+
+        # Теперь для установки значения на поле само значение берётся
+        # из переменной current_player.
+        game.make_move(row, column, current_player)
+        game.display()
+        # После каждого хода надо делать проверку на победу и на ничью.
+        if game.check_win(current_player):
+            result = f'Победили {current_player}'
+            print(result)
+            save_result(result)
+            running = False
+        elif game.is_board_full():
+            result = 'Ничья!'
+            print(result)
+            save_result(result)
+            running = False
+        # Тернарный оператор, через который реализована смена игроков.
+        # Если current_player равен X, то новым значением будет O,
+        # иначе — новым значением будет X.
+        current_player = 'O' if current_player == 'X' else 'X'
 
 
-# А вот вызов этой функции.
 if __name__ == '__main__':
     main()
